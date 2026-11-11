@@ -40,7 +40,9 @@ export default function DashboardPage() {
   // With useMemo, they only recalculate when the `boards` array changes
   const stats = useMemo(() => ({
     totalBoards: boards.length,
-    totalMembers: boards.reduce((acc, b) => acc + (b.member_count || 1), 0),
+    // Summing member_count would count the same person once per board, so report per-board figures instead.
+    sharedBoards: boards.filter((b) => (b.member_count || 1) > 1).length,
+    largestTeam: boards.reduce((max, b) => Math.max(max, b.member_count || 1), 0),
   }), [boards]);
 
   if (isLoading) return <Loader fullScreen />;
@@ -54,8 +56,8 @@ export default function DashboardPage() {
       <div className={styles.statsGrid}>
         {[
           { label: "Total Boards", value: stats.totalBoards, icon: "📋", color: "#6366f1" },
-          { label: "Team Members", value: stats.totalMembers, icon: "👥", color: "#22c55e" },
-          { label: "Active Projects", value: stats.totalBoards, icon: "🚀", color: "#f59e0b" },
+          { label: "Shared Boards", value: stats.sharedBoards, icon: "🤝", color: "#22c55e" },
+          { label: "Largest Team", value: stats.largestTeam, icon: "👥", color: "#f59e0b" },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -90,7 +92,7 @@ export default function DashboardPage() {
               <div>
                 <p className={styles.recentTitle}>{board.title}</p>
                 <p className={styles.recentMeta}>
-                  {board.member_count || 1} members
+                  {board.member_count || 1} {(board.member_count || 1) === 1 ? "member" : "members"}
                 </p>
               </div>
             </div>

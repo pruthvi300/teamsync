@@ -13,6 +13,24 @@
 
 ---
 
+## 📸 Screenshots
+
+**Kanban board**: columns with WIP limits, priorities, labels, due dates and assignees; drag cards between columns and every member sees the change live
+
+![TeamSync board](docs/screenshots/board.png)
+
+**Task details**: edit priority and assignee, and discuss in comments
+
+![TeamSync task details](docs/screenshots/task.png)
+
+**Boards and dashboard**
+
+| Your boards | Dashboard |
+|-------------|-----------|
+| ![Boards list](docs/screenshots/boards.png) | ![Dashboard](docs/screenshots/dashboard.png) |
+
+---
+
 ## ✨ Features
 
 - 📋 **Kanban Boards** — Create boards with customizable columns (To Do, In Progress, Done)

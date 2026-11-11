@@ -123,9 +123,10 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }) {
           {/* Modal content */}
           <motion.div
             className={`${styles.modal} ${styles[`modal-${size}`]}`}
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            // framer-motion owns `transform`, so the centring offset lives here, not in the CSS.
+            initial={{ opacity: 0, scale: 0.95, x: "-50%", y: "-46%" }}
+            animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
+            exit={{ opacity: 0, scale: 0.95, x: "-50%", y: "-46%" }}
             transition={{ duration: 0.2 }}
           >
             {/* Header */}
