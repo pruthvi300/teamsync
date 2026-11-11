@@ -1,0 +1,110 @@
+# ============================================================================
+# TeamSync — Docker Compose
+# ============================================================================
+# Orchestrates all services: API, Frontend, PostgreSQL, Redis
+#
+# Usage:
+#   docker-compose up --build          → Start all services
+#   docker-compose up -d               → Start in background (detached)
+#   docker-compose down                → Stop all services
+#   docker-compose logs -f api         → Follow API logs
+#   docker-compose exec postgres psql  → Access PostgreSQL shell
+# ============================================================================
+
+services:
+  # ────────────────────────────────────────
+  # PostgreSQL — Primary Database
+  # ────────────────────────────────────────
+  # Stores: users, boards, columns, tasks, comments
+  # Why PostgreSQL: ACID transactions (task moves must be atomic),
+  #   relational data (boards → columns → tasks), JSON support for labels
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-teamsync}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-teamsync_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-teamsync_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-teamsync}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ────────────────────────────────────────
+  # Redis — Pub/Sub + Caching
+  # ────────────────────────────────────────
+  # Used for:
+  #   1. WebSocket message broadcasting (pub/sub between API instances)
+  #   2. Caching board data for fast reads
+  # Why Redis: Sub-millisecond pub/sub, perfect for real-time features
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ────────────────────────────────────────
+  # FastAPI Backend — REST API + WebSocket
+  # ────────────────────────────────────────
+  # Handles:
+  #   1. REST endpoints for CRUD operations
+  #   2. WebSocket connections for real-time board updates
+  #   3. JWT authentication
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-teamsync}:${POSTGRES_PASSWORD:-teamsync_secret}@postgres:5432/${POSTGRES_DB:-teamsync_db}
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-to-a-random-64-char-string}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - DEBUG=${DEBUG:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./api:/app  # Hot-reload in development
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ────────────────────────────────────────
+  # React Frontend — Vite Dev Server
+  # ────────────────────────────────────────
+  # React 18 + Vite SPA
+  # Proxies /api/* requests to the API service (configured in vite.config.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      # The Vite dev server proxies /api and /socket.io to this address (see vite.config.js).
+      - API_PROXY_TARGET=http://api:8000
+    depends_on:
+      - api
+    volumes:
+      - ./frontend:/app       # Hot-reload in development
+      - /app/node_modules     # Prevent node_modules from being overwritten
+    command: npm run dev -- --host 0.0.0.0
+
+# ────────────────────────────────────────
+# Named Volumes — Persistent Data
+# ────────────────────────────────────────
+volumes:
+  postgres_data:     # Database files survive container restarts
+  redis_data:        # Redis AOF/RDB snapshots

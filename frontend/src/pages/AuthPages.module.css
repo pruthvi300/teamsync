@@ -1,0 +1,82 @@
+/* ============================================================================
+ * TeamSync — Auth Pages Styles
+ * ============================================================================ */
+
+.authPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Decorative background glow ── */
+.bgGlow {
+  position: absolute;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, var(--color-accent-glow), transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.authCard {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+}
+
+.authHeader {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+.authLogo {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: var(--space-md);
+}
+.authTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-xs);
+}
+.authSubtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-base);
+}
+
+.submitBtn {
+  width: 100%;
+  margin-top: var(--space-sm);
+}
+
+.authFooter {
+  text-align: center;
+  margin-top: var(--space-lg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+.authLink {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-medium);
+}
+.authLink:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
